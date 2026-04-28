@@ -3,10 +3,6 @@
 #include <fstream>
 using namespace std;
 
-
-
-
-//aaabbcc -> 3a2b2c
 string compress_string(string &s){
     string new_s = "";
     int i = 1;
@@ -25,7 +21,6 @@ string compress_string(string &s){
     return new_s;
 
 }
-
 
 
 int main() {
