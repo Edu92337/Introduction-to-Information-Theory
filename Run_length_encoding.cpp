@@ -4,6 +4,8 @@
 using namespace std;
 
 
+
+
 //aaabbcc -> 3a2b2c
 string compress_string(string &s){
     string new_s = "";
@@ -12,12 +14,14 @@ string compress_string(string &s){
     while(i<s.size()){
         if(s[i]==s[i-1])t++;
         else{
-            new_s += to_string(t);
+            if(t>1) new_s += to_string(t);
             new_s += s[i-1];
             t=1;
         }
         i++;
     }
+    if(t > 1) new_s += to_string(t);
+    new_s += s[s.size()-1];
     return new_s;
 
 }
@@ -35,5 +39,11 @@ int main() {
             new_file << new_s<<" ";
         }
     }
+    new_file.close();
+    ifstream orig("rle_text.txt", ios::ate | ios::binary);
+    ifstream comp("compressed_text.txt", ios::ate | ios::binary);
+    cout << "Original:   " << orig.tellg() << " bytes" << endl;
+    cout << "Comprimido: " << comp.tellg() << " bytes" << endl;
+    cout <<"Fator de compressão : "<<float(comp.tellg())/orig.tellg() *100<<" %"<<endl;
     return 0;
 }
