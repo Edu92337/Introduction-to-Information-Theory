@@ -1,109 +1,114 @@
 #include <iostream>
 #include <vector>
-#include<map>
-#include<queue>
+#include <map>
+#include <queue>
 using namespace std;
 
-class No{
+class Node {
     public:
-        char simbolo;
+        char symbol;
         int freq;
-        No* esq;
-        No* dir;
-        No(int freq,char simbolo=' '){
-            this->esq = nullptr;
-            this->dir = nullptr;
-            this->simbolo = simbolo;
+        Node* left;
+        Node* right;
+        Node(int freq, char symbol = ' ') {
+            this->left = nullptr;
+            this->right = nullptr;
+            this->symbol = symbol;
             this->freq = freq;
         }
-        void libera(No* no){
-            if(!no)return;
-            libera(no->esq);
-            libera(no->esq);
-            delete no;
+        void free(Node* node) {
+            if (!node) return;
+            free(node->left);
+            free(node->right);
+            delete node;
         }
-    
 };
 
 struct Cmp {
-        bool operator()(No* a, No* b) {
-            return a->freq > b->freq; 
-        }
-    };
+    bool operator()(Node* a, Node* b) {
+        return a->freq > b->freq;
+    }
+};
 
-class huffman{
+class Huffman {
     public:
-        string palavra;
-        string codificada;
-        map<char,int>freq;
-        map<char,string>tabela;
-        priority_queue<No*,vector<No*>,Cmp>fila;
-        No* raiz = new No(0);
-        void calcula_freq(string s){
-            for(char c : s)freq[c]++;
+        string word;
+        string encoded;
+        map<char, int> freq;
+        map<char, string> table;
+        priority_queue<Node*, vector<Node*>, Cmp> queue;
+        Node* root = new Node(0);
+
+        void calc_freq(string s) {
+            for (char c : s) freq[c]++;
         }
-        void gera_fila(){
-            for(auto [c,f] : freq){
-                fila.push(new No(f,c));
+        void build_queue() {
+            for (auto [c, f] : freq) {
+                queue.push(new Node(f, c));
             }
         }
-        void gera_arvore(){
-            while(fila.size()>1){
-                No* esq = fila.top();fila.pop();
-                No* dir = fila.top();fila.pop();
-                No* pai = new No(esq->freq+dir->freq);
-                pai->esq = esq;
-                pai->dir = dir;
-                fila.push(pai);
+        void build_tree() {
+            if (queue.size() == 1) {
+                Node* only = queue.top(); queue.pop();
+                Node* parent = new Node(only->freq);
+                parent->left = only;
+                queue.push(parent);
+            }
+            while (queue.size() > 1) {
+                Node* left = queue.top(); queue.pop();
+                Node* right = queue.top(); queue.pop();
+                Node* parent = new Node(left->freq + right->freq);
+                parent->left = left;
+                parent->right = right;
+                queue.push(parent);
             }
         }
-        void gera_tabela(No* no,string prefixo){
-            if(no == nullptr)return ;
-            if(!no->esq && !no->dir){
-                tabela[no->simbolo] = prefixo;
+        void build_table(Node* node, string prefix) {
+            if (node == nullptr) return;
+            if (!node->left && !node->right) {
+                table[node->symbol] = prefix;
                 return;
             }
-            gera_tabela(no->esq,prefixo+"1");
-            gera_tabela(no->dir,prefixo+"0");
+            build_table(node->left, prefix + "1");
+            build_table(node->right, prefix + "0");
         }
 
-        huffman(string palavra){
-            this->palavra = palavra;
-            calcula_freq(palavra);
-            gera_fila();
-            gera_arvore();
-            raiz = fila.top();
-            gera_tabela(raiz,"");
+        Huffman(string word) {
+            this->word = word;
+            calc_freq(word);
+            build_queue();
+            build_tree();
+            root = queue.top();
+            build_table(root, "");
         }
-
-        string encode(){
-            string saida = "";
-            for(char c : palavra)saida += tabela[c];
-            codificada = saida;
-            return saida;
+        ~Huffman() {
+            root->free(root);
         }
-        string decode(){
-            string saida = "";
-            No* atual = raiz;
-            for(char b: codificada){
-                if(b == '0') atual = atual->dir;
-                else atual = atual->esq;
-                if(!atual->esq && !atual->dir){
-                    saida += atual->simbolo;
-                    atual = raiz;
+        string encode() {
+            string output = "";
+            for (char c : word) output += table[c];
+            encoded = output;
+            return output;
+        }
+        string decode() {
+            string output = "";
+            Node* current = root;
+            for (char b : encoded) {
+                if (b == '0') current = current->right;
+                else current = current->left;
+                if (!current->left && !current->right) {
+                    output += current->symbol;
+                    current = root;
                 }
-            }return saida;
+            }
+            return output;
         }
-
-        
-        
-
 };
 
 int main() {
-    string palavra = "banana";
-    huffman hf(palavra);
-    cout <<hf.encode()<<endl;
-    cout <<hf.decode()<<endl;
+    string word = "banana";
+    Huffman hf(word);
+    cout << hf.encode() << endl;
+    cout << hf.decode() << endl;
     return 0;
 }
