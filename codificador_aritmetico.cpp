@@ -34,6 +34,7 @@ class Codificador_aritmetico{
                     p0 += range * p;
                 }
             }
+            return {low, high};
         }
         // para usar no codificador semiadaptativo
         double encode_string(string& palavra){
